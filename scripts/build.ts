@@ -13,14 +13,7 @@
 
 import {execSync} from 'node:child_process';
 import readline from 'node:readline';
-import {
-  BLUE,
-  BOLD,
-  GREEN,
-  NC,
-  RED,
-} from '../libs/shared/data-models/src/lib/constants/console-colors.js';
-import {BIN_BASH_PATH} from '../libs/shared/data-models/src/lib/constants/constants.js';
+import {BIN_BASH_PATH, BLUE, BOLD, GREEN, NC, RED} from './constants.js';
 
 const COMMANDS = {
   all: 'Build client-web + astra-apis',

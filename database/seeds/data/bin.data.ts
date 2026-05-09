@@ -161,6 +161,81 @@ export const binSeedData: BinSeedData[] = [
     locationId: 'LOC_BBB',
   },
 
+  // ========== LOC_CCC Bins ==========
+  // Aisle A - Oils & Fluids
+  {
+    id: '64000000-0000-4000-8000-000000000001',
+    code: 'A-12-3',
+    description: 'Aisle A, Bay 12, Shelf 3 - Synthetic Oils',
+    locationId: 'LOC_CCC',
+  },
+  {
+    id: '64000000-0000-4000-8000-000000000002',
+    code: 'A-12-4',
+    description: 'Aisle A, Bay 12, Shelf 4 - Conventional Oils',
+    locationId: 'LOC_CCC',
+  },
+  {
+    id: '64000000-0000-4000-8000-000000000003',
+    code: 'A-13-1',
+    description: 'Aisle A, Bay 13, Shelf 1 - Transmission Fluids',
+    locationId: 'LOC_CCC',
+  },
+  {
+    id: '64000000-0000-4000-8000-000000000004',
+    code: 'A-13-2',
+    description: 'Aisle A, Bay 13, Shelf 2 - Coolants',
+    locationId: 'LOC_CCC',
+  },
+
+  // Aisle B - Filters
+  {
+    id: '64000000-0000-4000-8000-000000000005',
+    code: 'B-05-1',
+    description: 'Aisle B, Bay 05, Shelf 1 - Oil Filters',
+    locationId: 'LOC_CCC',
+  },
+  {
+    id: '64000000-0000-4000-8000-000000000006',
+    code: 'B-05-2',
+    description: 'Aisle B, Bay 05, Shelf 2 - Air Filters',
+    locationId: 'LOC_CCC',
+  },
+  {
+    id: '64000000-0000-4000-8000-000000000007',
+    code: 'B-05-3',
+    description: 'Aisle B, Bay 05, Shelf 3 - Fuel Filters',
+    locationId: 'LOC_CCC',
+  },
+
+  // Aisle C - Brakes
+  {
+    id: '64000000-0000-4000-8000-000000000008',
+    code: 'C-08-1',
+    description: 'Aisle C, Bay 08, Shelf 1 - Brake Pads',
+    locationId: 'LOC_CCC',
+  },
+  {
+    id: '64000000-0000-4000-8000-000000000009',
+    code: 'C-08-2',
+    description: 'Aisle C, Bay 08, Shelf 2 - Brake Rotors',
+    locationId: 'LOC_CCC',
+  },
+
+  // Aisle D - Electrical
+  {
+    id: '64000000-0000-4000-8000-000000000010',
+    code: 'D-01-1',
+    description: 'Aisle D, Bay 01, Shelf 1 - Batteries',
+    locationId: 'LOC_CCC',
+  },
+  {
+    id: '64000000-0000-4000-8000-000000000011',
+    code: 'D-02-2',
+    description: 'Aisle D, Bay 02, Shelf 2 - Alternators & Starters',
+    locationId: 'LOC_CCC',
+  },
+
   // ========== LOC_HQ Bins ==========
   // Aisle A - Oils & Fluids
   {

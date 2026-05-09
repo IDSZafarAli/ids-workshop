@@ -25,10 +25,15 @@ if [ ! -f .env ]; then
   exit 1
 fi
 
+# Load env variables so DB credentials and container name are available
+source .env
+
+PG_CONTAINER="postgres_aiws"
+
 echo -e "${YELLOW}Fetching current Logto M2M credentials from database...${NC}"
 
 # Query the database for M2M application credentials
-M2M_DATA=$(docker exec postgres psql -U postgres -d logto_db -P pager=off -t -A -c "
+M2M_DATA=$(docker exec ${PG_CONTAINER} psql -U "${LOGTO_DB_USER}" -d "${LOGTO_DB_NAME}" -P pager=off -t -A -c "
 SELECT id, secret 
 FROM applications 
 WHERE type = 'MachineToMachine' 

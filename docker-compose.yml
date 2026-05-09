@@ -19,7 +19,6 @@ services:
   postgres:
     image: postgres:18.3-alpine # Postgres used by Logto only
     container_name: postgres_aiws
-    user: postgres
     environment:
       POSTGRES_USER: ${LOGTO_DB_USER}
       POSTGRES_PASSWORD: ${LOGTO_DB_PASSWORD}
@@ -32,7 +31,8 @@ services:
     ports:
       - "${LOGTO_DB_HOST_PORT}:5432" # Expose PostgreSQL on host (5433 avoids conflict with other local Postgres instances)
     volumes:
-      - pgdata:/var/lib/postgresql/data # Persistent volume for Logto database
+      # postgres:18-alpine sets PGDATA to /var/lib/postgresql/18/docker (versioned), not the legacy /var/lib/postgresql/data.
+      - pgdata:/var/lib/postgresql/18/docker # Persistent volume for Logto database
     restart: unless-stopped
 
   ravendb:

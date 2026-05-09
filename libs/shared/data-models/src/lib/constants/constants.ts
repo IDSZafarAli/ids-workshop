@@ -3,8 +3,6 @@ export const API_BASE_URL = 'http://localhost:3000';
 export const API_TEST_HTTP = 'api-test.http';
 export const API_TEST_HTTP_EXAMPLE = 'api-test.http.example';
 
-export const BIN_BASH_PATH = '/bin/bash';
-
 export const DEFAULT_PAGE_SIZE = 50;
 export const DEFAULT_PAGE = 1;
 

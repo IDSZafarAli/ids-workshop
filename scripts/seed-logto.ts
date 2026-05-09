@@ -11,13 +11,7 @@ import path from 'node:path';
 import {stdin as input, stdout as output} from 'node:process';
 import readline from 'node:readline';
 
-import {
-  BLUE,
-  GREEN,
-  NC,
-  RED,
-  YELLOW,
-} from '../libs/shared/data-models/src/lib/constants/console-colors';
+import {BLUE, GREEN, NC, RED, YELLOW} from './constants.js';
 
 type OrgRoleSeed = {name: string; display: string; description: string};
 type UserSeed = {email: string; password: string; name: string; username: string};

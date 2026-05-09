@@ -11,8 +11,7 @@
 
 import {execSync} from 'node:child_process';
 import readline from 'node:readline';
-import {BLUE, BOLD, NC, RED} from '../libs/shared/data-models/src/lib/constants/console-colors.js';
-import {BIN_BASH_PATH} from '../libs/shared/data-models/src/lib/constants/constants.js';
+import {BIN_BASH_PATH, BLUE, BOLD, NC, RED} from './constants.js';
 
 const COMMANDS = {
   up: 'Start all containers (detached)',

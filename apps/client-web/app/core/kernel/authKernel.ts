@@ -132,6 +132,8 @@ class AuthKernel {
   private _isResolving = false;
   /** Set after a failed auth resolution to prevent retry loops until session changes. */
   private _hasFailedForCurrentSession = false;
+  /** Set once forced sign-out begins; prevents re-entry during the OIDC redirect flow. */
+  private _isForcedSigningOut = false;
 
   // -- Public: useSyncExternalStore contract --------------------------------
 
@@ -164,6 +166,13 @@ class AuthKernel {
     };
 
     if (state.isLoading) {
+      return;
+    }
+
+    // Block re-entry once forced sign-out has started — clearAllTokens() causes
+    // the SDK to briefly toggle isAuthenticated, which would reset the failed-session
+    // guard and re-trigger resolveAuth() before the OIDC redirect completes.
+    if (this._isForcedSigningOut) {
       return;
     }
 
@@ -432,10 +441,12 @@ class AuthKernel {
   }
 
   private async signOutInBackground(bridge: AuthBridge): Promise<void> {
+    this._isForcedSigningOut = true;
     try {
       await bridge.clearAllTokens();
       await bridge.signOut(`${window.location.origin}/`);
     } catch {
+      this._isForcedSigningOut = false;
       // Auth state is already marked invalid; router guards fail closed.
     }
   }

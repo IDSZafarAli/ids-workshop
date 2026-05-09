@@ -14,13 +14,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import {
-  BLUE,
-  GREEN,
-  NC,
-  RED,
-  YELLOW,
-} from '../libs/shared/data-models/src/lib/constants/console-colors.js';
+import {BLUE, GREEN, NC, RED, YELLOW} from './constants.js';
 
 type TokenResponse = {
   access_token?: string;

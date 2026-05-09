@@ -28,6 +28,8 @@ if [ -f ".env.development" ]; then
   source .env.development
 fi
 
+PG_CONTAINER="postgres_aiws"
+
 # if the user passes in -IC
 if [ "$1" == "-IC" ] && [ -z "$2" ]; then
   BACKUP_DIR="./logto/init_config"
@@ -41,7 +43,7 @@ fi
 mkdir -p "${BACKUP_DIR}"
 
 echo "📦 Exporting Logto database roles (server-level objects not captured by pg_dump)..."
-docker exec postgres pg_dumpall -U "${LOGTO_DB_USER}" --roles-only \
+docker exec ${PG_CONTAINER} pg_dumpall -U "${LOGTO_DB_USER}" --roles-only \
   | grep -v "^--\|^SET\|^$" \
   > "${BACKUP_FILE}"
 
@@ -70,7 +72,7 @@ else
 fi
 
 echo "📦 Exporting Logto database (excluding runtime data)..."
-docker exec postgres pg_dump -U "${LOGTO_DB_USER}" "${LOGTO_DB_NAME}" \
+docker exec ${PG_CONTAINER} pg_dump -U "${LOGTO_DB_USER}" "${LOGTO_DB_NAME}" \
   --exclude-table-data=public.daily_active_users \
   --exclude-table-data=public.daily_token_usage \
   --exclude-table-data=public.idp_initiated_saml_sso_sessions \
@@ -92,11 +94,11 @@ docker exec postgres pg_dump -U "${LOGTO_DB_USER}" "${LOGTO_DB_NAME}" \
 if [ "$1" == "-IC" ]; then
   echo "📦 Appending admin-tenant bootstrap rows for seed tables..."
   for t in "${SEED_TABLES[@]}"; do
-    COLS=$(docker exec postgres psql -U "${LOGTO_DB_USER}" "${LOGTO_DB_NAME}" -At \
+    COLS=$(docker exec ${PG_CONTAINER} psql -U "${LOGTO_DB_USER}" "${LOGTO_DB_NAME}" -At \
       -c "SELECT string_agg(column_name, ', ' ORDER BY ordinal_position) FROM information_schema.columns WHERE table_schema='public' AND table_name='${t}'")
     echo "" >> "${BACKUP_FILE}"
     echo "COPY public.${t} (${COLS}) FROM stdin;" >> "${BACKUP_FILE}"
-    docker exec postgres psql -U "${LOGTO_DB_USER}" "${LOGTO_DB_NAME}" \
+    docker exec ${PG_CONTAINER} psql -U "${LOGTO_DB_USER}" "${LOGTO_DB_NAME}" \
       -c "COPY (SELECT * FROM public.${t} WHERE tenant_id = 'admin') TO STDOUT" >> "${BACKUP_FILE}"
     echo "\\." >> "${BACKUP_FILE}"
   done

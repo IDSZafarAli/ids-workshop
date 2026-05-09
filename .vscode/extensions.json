@@ -1,5 +1,8 @@
 {
   "recommendations": [
+    "anthropic.claude-code",
+    "pkief.material-icon-theme",
+    "shd101wyy.markdown-preview-enhanced",
     "bierner.markdown-mermaid",
     "biomejs.biome",
     "chakrounanas.turbo-console-log",

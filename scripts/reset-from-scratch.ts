@@ -3,6 +3,7 @@
  * Reset From Scratch — Complete development environment reset
  *
  * This script orchestrates a full reset of the development environment:
+ *   0. Ensure Docker Desktop is running (auto-starts it on Windows if needed)
  *   1. Stop all running dev servers
  *   2. Clean old build artifacts (dist, build, nx cache)
  *   3. Tear down Docker containers and volumes
@@ -14,6 +15,7 @@
  *   9. Start APIs server
  *   10. Wait for APIs to be ready
  *   11. Run full database reset (clear + sync + seed)
+ *   12. Start client-web dev server
  *
  * Usage:
  *   npm run dev:reset-from-scratch
@@ -22,15 +24,7 @@
 import {type ChildProcess, execSync, spawn} from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import {
-  BLUE,
-  BOLD,
-  GREEN,
-  NC,
-  RED,
-  YELLOW,
-} from '../libs/shared/data-models/src/lib/constants/console-colors.js';
-import {BIN_BASH_PATH} from '../libs/shared/data-models/src/lib/constants/constants.js';
+import {BIN_BASH_PATH, BLUE, BOLD, GREEN, NC, RED, YELLOW} from './constants.js';
 
 const API_ENDPOINT = 'http://localhost:3000';
 const LOGTO_ENDPOINT = 'http://localhost:3001';
@@ -41,6 +35,79 @@ function exec(cmd: string): void {
 
 function execSilent(cmd: string): void {
   execSync(cmd, {stdio: 'ignore', shell: BIN_BASH_PATH});
+}
+
+async function ensureDockerRunning(): Promise<void> {
+  try {
+    execSync('docker info', {stdio: 'ignore'});
+    return;
+  } catch {
+    // Docker daemon not responding
+  }
+
+  if (process.platform !== 'win32') {
+    console.error(
+      `${RED}❌ Docker is not running. Please start Docker and re-run this script.${NC}`,
+    );
+    process.exit(1);
+  }
+
+  console.log(`${YELLOW}⊳ Docker Desktop is not running — attempting to start it...${NC}`);
+
+  const dockerPaths = [
+    'C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe',
+    process.env.LOCALAPPDATA ? `${process.env.LOCALAPPDATA}\\Docker\\Docker Desktop.exe` : null,
+  ].filter(Boolean) as string[];
+
+  let launched = false;
+  for (const dockerPath of dockerPaths) {
+    if (fs.existsSync(dockerPath)) {
+      spawn(dockerPath, [], {detached: true, stdio: 'ignore'}).unref();
+      console.log(`${BLUE}  Starting: ${dockerPath}${NC}`);
+      launched = true;
+      break;
+    }
+  }
+
+  if (!launched) {
+    console.error(
+      `${RED}❌ Could not find Docker Desktop. Please start it manually and re-run.${NC}`,
+    );
+    process.exit(1);
+  }
+
+  console.log(`${BLUE}Waiting for Docker Desktop to start (this may take up to 2 minutes)...${NC}`);
+  for (let attempt = 1; attempt <= 60; attempt++) {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      execSync('docker info', {stdio: 'ignore'});
+      console.log(`${GREEN}✓ Docker Desktop is running${NC}\n`);
+      return;
+    } catch {
+      process.stdout.write(`  Waiting... ${attempt * 2}s\r`);
+    }
+  }
+
+  console.error(`\n${RED}❌ Docker Desktop did not start within 2 minutes.${NC}`);
+  console.error(`  Please start Docker Desktop manually and re-run this script.`);
+  process.exit(1);
+}
+
+function releaseConflictingDockerPorts(): void {
+  // Ports our docker-compose uses — stop any foreign containers holding them
+  // before we try to bring our stack up.
+  const ports = ['3333', '3001', '3002', '8025', '1025'];
+  for (const port of ports) {
+    try {
+      const ids = execSync(`docker ps -q --filter "publish=${port}"`, {encoding: 'utf8'}).trim();
+      if (ids) {
+        console.log(`${YELLOW}⊳ Stopping container on port ${port} (${ids.slice(0, 12)})...${NC}`);
+        execSync(`docker stop ${ids}`, {stdio: 'ignore'});
+      }
+    } catch {
+      // ignore — port not in use or docker not available
+    }
+  }
 }
 
 async function waitForLogto(maxAttempts = 60, delayMs = 2000): Promise<boolean> {
@@ -89,6 +156,7 @@ async function main(): Promise<void> {
   console.log(`${BOLD}${BLUE}═══════════════════════════════════════════════════════════${NC}\n`);
 
   let apisProcess: ChildProcess | null = null;
+  let webProcess: ChildProcess | null = null;
 
   try {
     // Step 0: Create/refresh .env from .env.example (full reset always starts clean)
@@ -123,7 +191,7 @@ async function main(): Promise<void> {
     }
 
     // Step 1: Stop all dev servers
-    console.log(`${BLUE}[1/11]${NC} Stopping all dev servers...`);
+    console.log(`${BLUE}[1/12]${NC} Stopping all dev servers...`);
     try {
       execSilent('bash ./scripts/stop-dev-servers.sh');
       console.log(`${GREEN}✓ Dev servers stopped${NC}\n`);
@@ -132,7 +200,7 @@ async function main(): Promise<void> {
     }
 
     // Step 2: Clean old build artifacts and Nx cache
-    console.log(`${BLUE}[2/11]${NC} Cleaning old build artifacts and Nx cache...`);
+    console.log(`${BLUE}[2/12]${NC} Cleaning old build artifacts and Nx cache...`);
     try {
       execSilent('rm -rf apps/astra-apis/dist apps/client-web/build');
       execSilent('npx nx reset');
@@ -141,18 +209,23 @@ async function main(): Promise<void> {
       console.log(`${YELLOW}⊳ No build artifacts to clean${NC}\n`);
     }
 
+    // Pre-step: Ensure Docker Desktop is running before any Docker commands
+    console.log(`${BLUE}Checking Docker Desktop...${NC}`);
+    await ensureDockerRunning();
+
     // Step 3: Tear down Docker
-    console.log(`${BLUE}[3/11]${NC} Tearing down Docker containers and volumes...`);
+    console.log(`${BLUE}[3/12]${NC} Tearing down Docker containers and volumes...`);
     exec('docker compose down -v');
+    releaseConflictingDockerPorts();
     console.log(`${GREEN}✓ Docker containers removed${NC}\n`);
 
     // Step 4: Bring Docker back up
-    console.log(`${BLUE}[4/11]${NC} Starting Docker containers...`);
+    console.log(`${BLUE}[4/12]${NC} Starting Docker containers...`);
     exec('tsx scripts/docker.ts up');
     console.log(`${GREEN}✓ Docker containers running${NC}\n`);
 
     // Step 5: Import Logto init database
-    console.log(`${BLUE}[5/11]${NC} Importing Logto init database...`);
+    console.log(`${BLUE}[5/12]${NC} Importing Logto init database...`);
     exec('tsx scripts/logto.ts logto:db:import-init');
     console.log(`${GREEN}✓ Logto database initialized${NC}\n`);
 
@@ -165,7 +238,7 @@ async function main(): Promise<void> {
     console.log();
 
     // Step 6: Seed Logto test users and organizations
-    console.log(`${BLUE}[6/11]${NC} Seeding Logto test users and organizations...`);
+    console.log(`${BLUE}[6/12]${NC} Seeding Logto test users and organizations...`);
     exec('tsx scripts/logto.ts logto:seed');
     console.log(`${GREEN}✓ Logto test data seeded${NC}\n`);
 
@@ -175,17 +248,17 @@ async function main(): Promise<void> {
     console.log(`${GREEN}✓ Ready to proceed${NC}\n`);
 
     // Step 7: Sync M2M credentials from freshly imported Logto DB into .env
-    console.log(`${BLUE}[7/11]${NC} Updating Logto M2M credentials in .env...`);
+    console.log(`${BLUE}[7/12]${NC} Updating Logto M2M credentials in .env...`);
     exec('tsx scripts/logto.ts logto:update-creds');
     console.log(`${GREEN}✓ M2M credentials updated${NC}\n`);
 
     // Step 8: Ensure RavenDB database exists
-    console.log(`${BLUE}[8/11]${NC} Ensuring RavenDB database exists...`);
+    console.log(`${BLUE}[8/12]${NC} Ensuring RavenDB database exists...`);
     exec('tsx scripts/ensure_ids_dms_db_exists.ts');
     console.log(`${GREEN}✓ RavenDB database ready${NC}\n`);
 
     // Step 9: Start APIs server in background
-    console.log(`${BLUE}[9/11]${NC} Starting astra-apis server...`);
+    console.log(`${BLUE}[9/12]${NC} Starting astra-apis server...`);
 
     // Re-read .env so the server gets fresh M2M credentials from step 7
     const envFileContent = fs.readFileSync(path.resolve(process.cwd(), '.env'), 'utf8');
@@ -220,8 +293,8 @@ async function main(): Promise<void> {
     });
 
     // Step 10: Wait for APIs to be ready
-    console.log(`${BLUE}[10/11]${NC} Waiting for APIs to be ready...`);
-    const isReady = await waitForApi();
+    console.log(`${BLUE}[10/12]${NC} Waiting for APIs to be ready...`);
+    const isReady = await waitForApi(120, 1000);
     if (!isReady) {
       console.error(`${RED}✗ APIs failed to become ready${NC}`);
       process.exit(1);
@@ -229,9 +302,24 @@ async function main(): Promise<void> {
     console.log(`${GREEN}✓ APIs server running${NC}\n`);
 
     // Step 11: Run full database reset (non-interactive — --yes skips confirm)
-    console.log(`${BLUE}[11/11]${NC} Running full database reset (clear + sync + seed)...\n`);
+    console.log(`${BLUE}[11/12]${NC} Running full database reset (clear + sync + seed)...\n`);
     exec('tsx scripts/db.ts full-reset --yes');
     console.log(`\n${GREEN}✓ Database reset complete${NC}\n`);
+
+    // Step 12: Start client-web dev server in background
+    console.log(`${BLUE}[12/12]${NC} Starting client-web dev server...`);
+    webProcess = spawn('npx nx dev client-web', [], {
+      stdio: 'pipe',
+      shell: BIN_BASH_PATH,
+      detached: false,
+      env: freshEnv,
+    });
+
+    webProcess.on('error', (err) => {
+      console.error(`${RED}✗ Failed to start client-web: ${err.message}${NC}`);
+    });
+
+    console.log(`${GREEN}✓ client-web starting at http://localhost:3004${NC}\n`);
 
     // Success message
     console.log(`${BOLD}${GREEN}═══════════════════════════════════════════════════════════${NC}`);
@@ -242,7 +330,8 @@ async function main(): Promise<void> {
 
     console.log(`${BLUE}Services running:${NC}`);
     console.log(`  ✓ Docker containers (RavenDB, PostgreSQL/Logto)`);
-    console.log(`  ✓ astra-apis (http://localhost:3000)\n`);
+    console.log(`  ✓ astra-apis    → http://localhost:3000`);
+    console.log(`  ✓ client-web    → http://localhost:3004 (starting...)\n`);
 
     console.log(`${BLUE}Test users available:${NC}`);
     console.log(`  • mike@acme-rv.com / xyab12dE`);
@@ -251,18 +340,17 @@ async function main(): Promise<void> {
     console.log(`  • tim@acme-rv.com / xyab12dE`);
     console.log(`  • admin@acme-rv.com / Admin123!\n`);
 
-    console.log(`${YELLOW}Next step:${NC}`);
-    console.log(`  npm run dev:web\n`);
-
-    console.log(`${YELLOW}To stop the APIs server:${NC}`);
+    console.log(`${YELLOW}To stop all servers:${NC}`);
     console.log(`  npm run dev -- stop\n`);
 
-    // Keep APIs running — don't kill it
-    // User can stop it manually with dev:stop
+    // Keep both servers running — user can stop them with dev:stop
   } catch (error) {
     console.error(`\n${RED}✗ Reset failed: ${error}${NC}`);
     if (apisProcess) {
       apisProcess.kill('SIGTERM');
+    }
+    if (webProcess) {
+      webProcess.kill('SIGTERM');
     }
     process.exit(1);
   }
