@@ -1,8 +1,8 @@
-import type {RegisterUserDto, RegisterUserResponse} from '@ids/data-models';
 import {ConflictException, InternalServerErrorException} from '@nestjs/common';
 import {Test, TestingModule} from '@nestjs/testing';
 import {vi} from 'vitest';
 import {LocationService} from '../../location/location.service';
+import type {RegisterUserDto, RegisterUserResponse} from '../dto/register-user.dto.js';
 import {UserController} from '../user.controller';
 import {UserService} from '../user.service';
 

@@ -1,4 +1,3 @@
-import type {RegisterUserDto, RegisterUserResponse} from '@ids/data-models';
 import {
   BadRequestException,
   Body,
@@ -35,6 +34,7 @@ import {AuthInfo} from '../auth/auth-utils';
 import {Public} from '../auth/public.decorator';
 import {LocationListResponseDto} from '../location/dto/location-list.query.dto';
 import {LocationService} from '../location/location.service';
+import type {RegisterUserDto, RegisterUserResponse} from './dto/register-user.dto.js';
 import {UpdateUserDto} from './dto/update-user-profile.dto';
 import {UserContextResponseDto} from './dto/user-context-response.dto';
 import {UserResponseDto} from './dto/user-response.dto';

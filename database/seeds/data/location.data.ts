@@ -1,5 +1,7 @@
-import type {CreateAddressDto, CreateTelcomDto, DbLocation} from '@ids/data-models';
+import type {DbLocation} from '@ids/data-models';
 import type {LocationContact} from '../../../apps/astra-apis/src/location/entities/location.entity';
+import type {CreateAddressDto} from '../dto/create-address.dto.js';
+import type {CreateTelcomDto} from '../dto/create-telcom.dto.js';
 
 /**
  * Note: Addresses and telcoms are now created inline via the Location API endpoint.

@@ -1,4 +1,4 @@
-import type {IdsBaseEntity, IntlAddress} from '../common/index.js';
+import type {IdsBaseEntity} from '../common/index.js';
 import type {CurrencyCode} from '../money/index.js';
 
 /**
@@ -10,7 +10,6 @@ export interface DbLocation extends IdsBaseEntity {
   displayName?: string | null;
   logtoId?: string | null;
   description?: string | null;
-  address?: IntlAddress;
   active: boolean;
   /** ISO 4217 currency code used as the default for all monetary values at this location. */
   defaultCurrency: CurrencyCode;

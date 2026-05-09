@@ -1,6 +1,3 @@
-/**
- * DTO for user registration
- */
 export interface RegisterUserDto {
   email: string;
   password: string;
@@ -10,9 +7,6 @@ export interface RegisterUserDto {
   phoneNumber?: string;
 }
 
-/**
- * Response after successful registration
- */
 export interface RegisterUserResponse {
   userId: string;
   email: string;

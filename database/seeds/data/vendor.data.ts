@@ -1,4 +1,5 @@
-import type {CreateAddressDto, CreateTelcomDto} from '@ids/data-models';
+import type {CreateAddressDto} from '../dto/create-address.dto.js';
+import type {CreateTelcomDto} from '../dto/create-telcom.dto.js';
 
 /**
  * Note: The actual Vendor entity only has: id, code, name, locationId

@@ -1,7 +1,3 @@
-/**
- * DTO for creating a new user profile
- * Called when a user first registers via Logto
- */
 export interface CreateUserDto {
   logtoUserId: string;
   email: string;

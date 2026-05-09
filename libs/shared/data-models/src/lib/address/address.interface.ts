@@ -1,20 +1,31 @@
-/**
- * Address Domain Models and DTOs
- *
- * Enterprise-grade address types supporting global address formats,
- * geocoding, validation, and analytics.
- */
+import type {IdsBaseEntity} from '../common/index.js';
 
-import type {
-  AddressType,
-  AddressVerificationStatus,
-  GeocodingAccuracy,
-  IdsBaseEntity,
-} from '../common/index.js';
+export type AddressType =
+  | 'billing'
+  | 'shipping'
+  | 'correspondence'
+  | 'physical'
+  | 'mailing'
+  | 'registered'
+  | 'previous'
+  | 'alternate';
 
-/**
- * Geocoding Data
- */
+export type AddressVerificationStatus =
+  | 'unverified'
+  | 'verified'
+  | 'standardized'
+  | 'corrected'
+  | 'invalid'
+  | 'manual'
+  | 'partial';
+
+export type GeocodingAccuracy =
+  | 'rooftop'
+  | 'range_interpolated'
+  | 'geometric_center'
+  | 'approximate'
+  | 'unknown';
+
 export interface GeocodingData {
   latitude: number;
   longitude: number;
@@ -23,104 +34,54 @@ export interface GeocodingData {
   timeZone?: string;
 }
 
-/**
- * Address Verification Details
- */
 export interface VerificationDetails {
-  dpv?: string; // Delivery Point Validation (USPS)
-  rdi?: string; // Residential Delivery Indicator
-  footnotes?: string[]; // Verification footnotes/warnings
-  suggestions?: string[]; // Suggested corrections
+  dpv?: string;
+  rdi?: string;
+  footnotes?: string[];
+  suggestions?: string[];
 }
 
-/**
- * Core Address Entity Interface
- */
 export interface Address extends IdsBaseEntity {
-  // Identification & Classification
   type: AddressType;
   label?: string;
   isPrimary: boolean;
 
-  // Structured Address Components
   addressLine1: string;
   addressLine2?: string;
   addressLine3?: string;
   locality: string;
   region?: string;
   postalCode?: string;
-  country: string; // ISO 3166-1 alpha-2 country code
+  country: string;
   countryName?: string;
 
-  // Extended Components
   subLocality?: string;
   sortingCode?: string;
   administrativeArea?: string;
 
-  // Unstructured/Display Format
   formattedAddress?: string;
 
-  // Geocoding & Mapping
   geocoding?: GeocodingData;
 
-  // Verification & Validation
   verificationStatus?: AddressVerificationStatus;
   verificationDate?: Date;
   verificationProvider?: string;
   verificationDetails?: VerificationDetails;
 
-  // Search & Analytics
   searchableText?: string;
   normalizedPostalCode?: string;
   geoHash?: string;
   plus4?: string;
   deliveryPoint?: string;
 
-  // Metadata
   notes?: string;
   isActive: boolean;
   validFrom?: Date;
   validTo?: Date;
 
-  // Multi-tenant Location Scoping
   locationId: string;
 }
 
-/**
- * DTO for creating a new address
- */
-export class CreateAddressDto {
-  type!: AddressType;
-  label?: string;
-  isPrimary?: boolean;
-
-  addressLine1!: string;
-  addressLine2?: string;
-  addressLine3?: string;
-  locality!: string;
-  region?: string;
-  postalCode?: string;
-  country!: string; // ISO 3166-1 alpha-2
-  countryName?: string;
-
-  subLocality?: string;
-  sortingCode?: string;
-  administrativeArea?: string;
-
-  formattedAddress?: string;
-  geocoding?: GeocodingData;
-
-  notes?: string;
-  isActive?: boolean;
-  validFrom?: Date;
-  validTo?: Date;
-
-  locationId!: string;
-}
-
-/**
- * DTO for updating an address
- */
 export class UpdateAddressDto {
   type?: AddressType;
   label?: string;
@@ -159,10 +120,6 @@ export class UpdateAddressDto {
   validTo?: Date;
 }
 
-/**
- * Address Entity Search Criteria
- * Renamed to avoid conflict with AddressSearchCriteria in common/address-types
- */
 export interface AddressEntitySearchCriteria {
   searchTerm?: string;
   locationId?: string;
@@ -178,9 +135,6 @@ export interface AddressEntitySearchCriteria {
   sortOrder?: 'asc' | 'desc';
 }
 
-/**
- * Address List Response
- */
 export interface AddressListResponse {
   data: Address[];
   total: number;
@@ -188,11 +142,6 @@ export interface AddressListResponse {
   pageSize: number;
   totalPages: number;
 }
-
-/**
- * Junction Entity Interfaces
- * Renamed to avoid conflicts with legacy CustomerAddress in customer module
- */
 
 export interface CustomerAddressLink {
   id: string;

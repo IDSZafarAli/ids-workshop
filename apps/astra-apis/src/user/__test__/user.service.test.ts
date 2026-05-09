@@ -1,7 +1,7 @@
-import type {RegisterUserDto, RegisterUserResponse} from '@ids/data-models';
 import {BadRequestException, ConflictException, Logger, NotFoundException} from '@nestjs/common';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {RavenSessionFactory} from '../../infrastructure/ravendb/session-factory';
+import type {RegisterUserDto, RegisterUserResponse} from '../dto/register-user.dto.js';
 import {LogtoManagementClient} from '../logto-management.client';
 import {UserService} from '../user.service';
 

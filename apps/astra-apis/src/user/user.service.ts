@@ -1,4 +1,4 @@
-import type {User as IUser, RegisterUserDto, RegisterUserResponse} from '@ids/data-models';
+import type {User as IUser} from '@ids/data-models';
 import {
   BadRequestException,
   ConflictException,
@@ -9,6 +9,7 @@ import {
 import {createIdsBaseEntity, touchIdsBaseEntity} from '../common/entities/ids-base.entity';
 import {RavenSessionFactory} from '../infrastructure/ravendb/session-factory';
 import type {CreateUserDto} from './dto/create-user-profile.dto';
+import type {RegisterUserDto, RegisterUserResponse} from './dto/register-user.dto.js';
 import type {UpdateUserDto} from './dto/update-user-profile.dto';
 import {UserResponseDto} from './dto/user-response.dto';
 import {User} from './entities/user.entity';

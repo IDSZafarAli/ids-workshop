@@ -1,4 +1,3 @@
-import type {CreateUserDto as ICreateUserDto} from '@ids/data-models';
 import {
   IsBoolean,
   IsEmail,
@@ -10,6 +9,7 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
+import type {CreateUserDto as ICreateUserDto} from './create-user.dto.js';
 
 /**
  * DTO for creating a new user profile in RavenDB
