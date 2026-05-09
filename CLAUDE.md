@@ -86,6 +86,8 @@ All commits must follow this format (enforced by commitlint):
 
 When committing: always propose 2 options (concise, standard). Wait for user selection before committing.
 
+**Never `git push` without explicit user permission.** Always stop after committing and wait to be told to push.
+
 ---
 
 ## Architecture Quick Reference
