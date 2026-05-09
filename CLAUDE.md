@@ -1,20 +1,43 @@
-# IDS AI Skeleton — Claude Code Instructions
+# IDS Cloud DMS — Claude Code Instructions
 
-> This file is auto-loaded every conversation. Keep it lean — detailed standards live in `docs/`.
+@../docs/standards/coding-standards-core.md
+
+> This file is auto-loaded every conversation. Keep it lean — detailed standards live in `docs/standards/`.
 
 ---
 
-## Context Files
+## Mandatory First Action — Read Standards Before Code
 
-Load these before writing any code. Read standards **before** reading project source files — they inform how you analyze code.
+`coding-standards-core.md` is auto-loaded via `@` import above. **Before writing a single line of code**, read the layer-specific standards for the area you are touching. This is not optional — the standards govern every implementation decision, and the Non-Negotiable Rules at the top of each file are enforced.
 
-| File | When |
+| File | When | Status |
+|---|---|---|
+| `docs/standards/coding-standards-backend.md` | Any edit under `apps/astra-apis/**` | **Mandatory** |
+| `docs/standards/coding-standards-frontend.md` | Any edit under `apps/client-web/**` | **Mandatory** |
+| `docs/standards/ravendb-document-design.md` | RavenDB entities, indexes, queries, or document schema changes | **Mandatory for that work** |
+| `docs/standards/file-upload-standards.md` | File uploads, binary attachments, image handling | **Mandatory for that work** |
+| `docs/architecture/web-client-architecture.md` | Frontend feature modules, forms, routing, auth flow | Read when unfamiliar |
+| `.ai-workflow/.ai-project-architecture.md` | Adding features or unfamiliar with structure | Read when unfamiliar |
+| `.ai-workflow/.agent.md` | Planning, complex tasks | Read when unfamiliar |
+
+**Skipping mandatory reads is the root cause of most standards violations.** If the work is trivial enough to skip the read (typo, comment edit, formatting), it is also trivial enough that no standards rule is at stake. For anything else, read first.
+
+## Skills
+
+When working in these areas, read the linked skill file before writing code:
+
+| Task / Code Area | Skill |
 |---|---|
-| `docs/CODING_STANDARD.md` | **Always** when writing code |
-| `docs/DESIGN_STANDARD.md` | Frontend work (`apps/client-web/**`) — MUI, forms, search, grid |
-| `docs/ARCHITECTURE.md` | Adding features, routing, auth flow, or unfamiliar with structure |
-| `docs/TECHNOLOGY_OVERVIEW.md` | Understanding the tech stack, business context, or multi-tenancy model |
-| `.ai-workflow/.agent.md` | Planning, complex tasks |
+| Data fetching, `useQuery`/`useMutation`, query config, cache invalidation | `.claude/skills/tanstack-query/SKILL.md` |
+| Routes, `clientLoader`, `clientAction`, forms, navigation, error boundaries | `.claude/skills/react-router-framework-mode/SKILL.md` |
+| React Hook Form setup, validation, field arrays, MUI integration | `.claude/skills/react-hook-form/SKILL.md` |
+| RavenDB sessions, queries, indexes, `locationId` filtering, paginated queries | `.claude/skills/ravendb-queries/SKILL.md` |
+| NestJS feature modules — controllers, services, DTOs, mappers, partial updates | `.claude/skills/nestjs-feature-module/SKILL.md` |
+| Throwing or handling RFC 9457 Problem Details errors (backend + frontend) | `.claude/skills/problem-details-errors/SKILL.md` |
+| File uploads & RavenDB attachments — multipart, validation, image variants | `.claude/skills/file-uploads-attachments/SKILL.md` |
+| Money type & locale-aware formatting — cents storage, MoneyField, useFormat* | `.claude/skills/money-and-formatting/SKILL.md` |
+| Playwright E2E tests — Logto auth, location selection, stable selectors, timing | `.claude/skills/playwright-e2e/SKILL.md` |
+| GitHub PR interactions — posting a review, resolving open comment threads and replying | `.claude/skills/pr-review-github/SKILL.md` |
 
 ---
 
@@ -68,39 +91,42 @@ This is critical. **These are clarifications — do NOT implement:**
 
 ---
 
-## Commit Format
+## Git, Commits & Push Policy
 
-All commits must follow this format (enforced by commitlint):
+See `.claude/rules/git-policy.md` (loaded at session start) for the full commit format spec, commit/push approval policy, and Co-Authored-By rule.
 
-```
-<type>: <subject>
-```
+---
 
-**Allowed types:** `chore` `doc` `feat` `fix` `minor` `refact` `tool` `ux`
+## Commands Quick Reference
 
-**Subject rules:**
-- Start with lowercase — `add feature` ✅, `Add feature` ❌
-- 10–99 characters
-- Present tense ("add" not "added")
-- Space after colon — `feat: add...` ✅
+The Stop hook (`post-task-check.ts`) runs these in parallel after every task. Run them manually if you want to verify mid-task:
 
-When committing: always propose 2 options (concise, standard). Wait for user selection before committing.
+| Script | What it does |
+|---|---|
+| `npm run lint:check` | Biome lint across the workspace |
+| `npm run check:standards:changed` | Standards validator on changed files |
+| `npm run typecheck:apis` | `tsc --noEmit` for `apps/astra-apis` |
+| `npm run typecheck:web` | `tsc --noEmit` for `apps/client-web` |
+| `npm run test:apis` | Vitest unit tests — backend (`nx test astra-apis`) |
+| `npm run test:web` | Vitest unit tests — frontend (utilities only; no component tests) |
+| `npm run dev:apis` | Start NestJS backend in watch mode |
+| `npm run dev:web` | Start React frontend dev server |
+
+E2E tests live in `apps/astra-apis-e2e/` and `apps/client-web-e2e/` — invoke via Nx (`nx e2e <project>`), not the npm scripts above.
 
 ---
 
 ## Architecture Quick Reference
 
-**Project**: Nx monorepo — NestJS backend (`apps/astra-apis/`), React SSR frontend (`apps/client-web/`).
+**Project**: Nx monorepo — NestJS backend (`apps/astra-apis/`), React frontend (`apps/client-web/`).
 
-**Non-obvious facts:**
 - **Multi-tenancy**: A tenant = a `Location`. Data is scoped by `locationId` on every entity. Queries **must always filter by `locationId`** unless the entity is explicitly global/system-level.
 - **Database**: RavenDB for application data (`ids_db`). PostgreSQL for Logto auth (`logto_db`). Both in `docker-compose.yml`.
 - **Auth**: Logto (OAuth 2.0 / OIDC). Backend validates JWT via `@logto/node`. Guards check permissions; location context flows from auth into queries.
-- **SSR**: React Router configured `ssr: false`. Use `clientLoader` (not `loader`) for data fetching in protected routes.
-- **Shared library**: `@ids/data-models` (`libs/shared/data-models/`) — single intentional barrel export. Always import from `@ids/data-models`.
+- **Shared library**: Always import from `@ids/data-models` — it's the single intentional barrel export.
 - **Navigation**: Always list `apps/astra-apis/src/` and `apps/client-web/app/` to discover module structure before making changes.
 
-See `docs/ARCHITECTURE.md` for full folder layout, auth flow, and data flow conventions.
+See `.ai-workflow/.ai-project-architecture.md` for full architecture, non-obvious facts, DTO patterns, and naming conventions.
 
 ---
 
@@ -119,5 +145,6 @@ See `docs/ARCHITECTURE.md` for full folder layout, auth flow, and data flow conv
 | `ids-testing-specialist` | Test coverage, quality, and testing best practices |
 | `ids-git-assistant` | Git commits (propose 2 options), PR creation with full description template |
 | `ids-team-lead` | Planning, architecture decisions, and orchestration of backend + frontend delegation |
+| `ids-e2e-assistant` | Write and repair Playwright E2E tests — location-tenant aware, seed-data aware, two-phase repair loop |
 | `ids-doc-assistant` | Post-implementation feature docs — ERDs, user journeys, business rules from code |
 | `ids-onboarding` | Guide new developers through local setup, troubleshooting, and architecture overview |
