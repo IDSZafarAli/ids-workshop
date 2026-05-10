@@ -159,15 +159,6 @@ function grepLines(files: string[], pattern: RegExp, excludeLine?: RegExp): Line
   return out;
 }
 
-function grepFilesWithAll(files: string[], ...patterns: RegExp[]): FileViolation[] {
-  return files
-    .filter((f) => {
-      const content = readFileSync(f, 'utf8');
-      return patterns.every((p) => p.test(content));
-    })
-    .map((f) => ({rel: relative(ROOT, f)}));
-}
-
 // Detects in-memory chain calls (filter/sort) on RavenDB .all() results.
 // Only flags if the chain method appears within 6 lines after .all(), and
 // excludes DTO-level calls like dto.vendors.filter(...) which are legitimate.
