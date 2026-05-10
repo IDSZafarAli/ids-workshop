@@ -59,7 +59,7 @@ const COMMANDS = {
   start: 'Start full dev environment: docker → apis → web (+ Doctor if enabled)',
   apis: 'Start astra-apis dev server only',
   web: 'Start client-web dev server only',
-  doctor: 'Start IDS Doctor sidecar only (requires IDS_DOCTOR_ENABLED=true)',
+  doctor: 'Start IDS Doctor sidecar only (requires VITE_ENABLE_IDS_DOCTOR=true)',
   stop: 'Stop all running dev servers',
   status: 'Show dev environment status',
 } as const;
@@ -144,7 +144,7 @@ function runWeb(): void {
 }
 
 function runStart(): void {
-  const doctorEnabled = process.env['IDS_DOCTOR_ENABLED'] === 'true';
+  const doctorEnabled = process.env['VITE_ENABLE_IDS_DOCTOR'] === 'true';
   const totalSteps = doctorEnabled ? 4 : 3;
 
   // Step 1: Start Docker (blocking — must be up before apps start)
@@ -190,7 +190,7 @@ function runStart(): void {
     console.log(`${BLUE}[4/${totalSteps}]${NC} Starting IDS Doctor sidecar + widget watcher...`);
     children.push(...spawnDoctor());
   } else {
-    console.log(`${YELLOW}  IDS Doctor disabled (set IDS_DOCTOR_ENABLED=true to enable)${NC}`);
+    console.log(`${YELLOW}  IDS Doctor disabled (set VITE_ENABLE_IDS_DOCTOR=true to enable)${NC}`);
   }
 
   console.log(`\n${GREEN}Dev environment starting — press Ctrl+C to stop all${NC}\n`);
@@ -228,8 +228,8 @@ function run(command: Command): void {
       break;
     }
     case 'doctor': {
-      if (process.env['IDS_DOCTOR_ENABLED'] !== 'true') {
-        console.warn(`${YELLOW}Set IDS_DOCTOR_ENABLED=true in your .env to enable Doctor${NC}`);
+      if (process.env['VITE_ENABLE_IDS_DOCTOR'] !== 'true') {
+        console.warn(`${YELLOW}Set VITE_ENABLE_IDS_DOCTOR=true in your .env to enable Doctor${NC}`);
       }
       const doctorProcs = spawnDoctor();
       if (doctorProcs.length === 0) {

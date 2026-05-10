@@ -1,6 +1,5 @@
 import type {DoctorEvidence, DoctorFinding, DoctorRule} from './doctor-rule';
 import {makeFinding} from './doctor-rule';
-import {lookupRoute} from './route-catalog';
 
 const tokenRetryRace: DoctorRule = {
   id: 'token_retry_race',
@@ -12,7 +11,6 @@ const tokenRetryRace: DoctorRule = {
       const a = net[i];
       const b = net[i + 1];
       if (a.status === 401 && b.status === 201 && a.url === b.url && b.ts - a.ts < 5000) {
-        const files = lookupRoute(b.url);
         findings.push(
           makeFinding(
             'token_retry_race',
@@ -26,7 +24,6 @@ const tokenRetryRace: DoctorRule = {
                 'Check the created record: does it have a non-empty locationId?',
                 'Check the auth middleware refreshes locationId before the retry.',
               ],
-              likelyFiles: [...files.backend, ...files.frontend],
             },
           ),
         );
@@ -48,7 +45,6 @@ const silentLocationScopeLoss: DoctorRule = {
         e.status < 300 &&
         (e.reqBody as Record<string, unknown>)?.['locationId'] === ''
       ) {
-        const files = lookupRoute(e.url);
         findings.push(
           makeFinding(
             'silent_location_scope_loss',
@@ -62,7 +58,6 @@ const silentLocationScopeLoss: DoctorRule = {
                 'Verify the created/updated record in RavenDB — does it have locationId set?',
                 'Check that the auth guard injects locationId before the handler runs.',
               ],
-              likelyFiles: files.backend,
             },
           ),
         );
@@ -138,7 +133,6 @@ const unhandledNotFound: DoctorRule = {
     const hasErrorBoundary = ev.snapshot.errorElements.length > 0;
     if (notFound.length > 0 && hasErrorBoundary) {
       const e = notFound[0];
-      const files = lookupRoute(e.url);
       return [
         makeFinding(
           'unhandled_not_found',
@@ -152,7 +146,7 @@ const unhandledNotFound: DoctorRule = {
               'Check if the query/loader handles 404 from the API and renders a domain not-found UI.',
               'Check ErrorFallback.tsx — is it catching 404 responses that should be handled gracefully?',
             ],
-            likelyFiles: [...files.frontend, 'apps/client-web/app/components/ErrorFallback.tsx'],
+            likelyFiles: ['apps/client-web/app/components/ErrorFallback.tsx'],
           },
         ),
       ];
@@ -169,7 +163,6 @@ const unhandledValidationError: DoctorRule = {
     const hasErrorBoundary = ev.snapshot.errorElements.length > 0;
     if (badRequest.length > 0 && hasErrorBoundary) {
       const e = badRequest[0];
-      const files = lookupRoute(e.url);
       return [
         makeFinding(
           'unhandled_validation_error',
@@ -183,7 +176,6 @@ const unhandledValidationError: DoctorRule = {
               'Check if the form handles the 400 Problem Details response and maps errors to fields.',
               'Check the API response body — does it include field-level validation details?',
             ],
-            likelyFiles: files.frontend,
           },
         ),
       ];
@@ -260,7 +252,6 @@ const slowEndpoint: DoctorRule = {
     const slow = ev.networkEvents.filter((e) => e.durationMs > threshold);
     if (slow.length >= 2) {
       const slowest = slow.sort((a, b) => b.durationMs - a.durationMs)[0];
-      const files = lookupRoute(slowest.url);
       return [
         makeFinding(
           'slow_endpoint',
@@ -274,7 +265,6 @@ const slowEndpoint: DoctorRule = {
               'Check for missing RavenDB indexes on the query.',
               'Check for N+1 query patterns in the service.',
             ],
-            likelyFiles: files.backend,
           },
         ),
       ];
