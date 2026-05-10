@@ -29,7 +29,7 @@ const css = `
   .tabs { display: flex; overflow-x: auto; background: #091827; border-bottom: 1px solid #29415f; }
   .tab { border: 0; border-right: 1px solid #1f334d; border-radius: 0; background: transparent; color: #9fb0c4; padding: 5px 10px; height: 30px; white-space: nowrap; }
   .tab.active { color: #9bd6ff; background: #10243a; box-shadow: inset 0 -2px #6bb6ff; }
-  .content { overflow: auto; min-height: 220px; }
+  .content { overflow: auto; min-height: 0; flex: 1; }
   .row { padding: 8px 12px; border-bottom: 1px solid #18314c; }
   .row:hover { background: #0c1d30; }
   .meta { display: flex; gap: 8px; align-items: baseline; min-width: 0; }
