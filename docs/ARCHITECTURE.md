@@ -24,7 +24,10 @@
 │   ├── astra-apis-e2e/       # Backend E2E/integration tests
 │   ├── client-web/           # React SSR frontend
 │   │   └── app/              # See Frontend Folder Structure below
-│   └── client-web-e2e/       # Playwright E2E tests
+│   ├── client-web-e2e/       # Playwright E2E tests
+│   └── astra-dev-doctor/     # Dev-only diagnostic sidecar (never deployed)
+│       ├── src/              # NestJS service: telemetry ingest, rule engine, .doctor/ writer
+│       └── widget/           # Browser widget (Vite → doctor.js IIFE bundle)
 ├── libs/
 │   └── shared/
 │       ├── data-models/      # Shared DTOs and types (@ids/data-models)
@@ -346,6 +349,65 @@ Use `clientLoader` (not `loader`) in all page components. The `/sign-in` pre-ren
 2. Add controller method and service method in the domain folder
 3. Apply `class-validator` decorators; keep Swagger annotations current
 4. Add Vitest tests
+
+---
+
+## IDS Doctor — Dev Diagnostic Sidecar
+
+IDS Doctor is a **development-only** tool that helps diagnose browser-side bugs during local development. It is never deployed to production or staging.
+
+### How It Works
+
+1. When `VITE_ENABLE_IDS_DOCTOR=true`, `entry.client.tsx` injects `doctor.js` into the browser by appending a `<script>` tag pointing at the sidecar (`VITE_DOCTOR_URL`, default `http://localhost:3999`)
+2. The widget patches `window.fetch`, `console.error`, and `window.unhandledrejection` to capture telemetry in ring buffers (no network traffic until the developer acts)
+3. A floating panel (FAB button) appears in the UI — clicking Sync POSTs captured events to the sidecar
+4. The sidecar runs the rule engine against the evidence and writes structured output to `.doctor/` in the workspace root
+5. AI assistants (Claude Code) and developers read `.doctor/latest.md` to understand current browser state
+
+### Enabling
+
+`VITE_ENABLE_IDS_DOCTOR=true` in `.env` is the single flag that controls both the sidecar process spawn in `dev.ts` and the widget injection in the browser.
+
+### Sidecar Endpoints
+
+| Endpoint | Method | Purpose |
+|---|---|---|
+| `/health` | GET | Health check |
+| `/doctor.js` | GET | Serves the compiled widget bundle |
+| `/telemetry/events` | POST | Ingest a batch of network + console events |
+| `/findings` | GET | Return current diagnostic findings |
+| `/snapshot` | GET / POST | Read or write the browser state snapshot |
+| `/dom-snapshot` | POST | Write a DOM snapshot |
+
+### Output Files (.doctor/)
+
+Written on every sync, readable by AI and humans:
+
+| File | Purpose |
+|---|---|
+| `.doctor/latest.md` | Human/AI-readable diagnostic report — start here |
+| `.doctor/findings.json` | Machine-readable current findings |
+| `.doctor/snapshot.json` | Latest browser snapshot (title, path, error elements) |
+| `.doctor/sessions/latest-network.jsonl` | Raw network events (may include JWTs) |
+| `.doctor/sessions/latest-console.jsonl` | Raw console/rejection events |
+
+### Rule Engine
+
+Nine deterministic rules run on every sync (`apps/astra-dev-doctor/src/rules/rule-catalog.ts`):
+
+| Rule | Severity | Detects |
+|---|---|---|
+| `token_retry_race` | high | 401 → 201 on same URL within 5s — stale auth context on retry |
+| `silent_location_scope_loss` | high | Successful write with empty `locationId` in request body |
+| `auth_loop` | high | 3+ 401 responses — token refresh failure or redirect loop |
+| `api_unreachable` | high | 2+ status-0 requests — API server down or unreachable |
+| `unhandled_not_found` | medium | 404 + error boundary visible — 404 not handled as a domain state |
+| `unhandled_validation_error` | medium | 400 + error boundary visible — validation errors not surfaced to fields |
+| `repeated_console_errors` | medium | 3+ `console.error` calls in the session |
+| `unhandled_rejection_spike` | medium | 2+ unhandled promise rejections within 10s |
+| `slow_endpoint` | info | 2+ requests exceeding 3000ms |
+
+---
 
 ### Adding a New UI Screen
 

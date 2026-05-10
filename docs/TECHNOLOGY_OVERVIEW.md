@@ -85,6 +85,7 @@ The UI term is always "Location". "Logto Organization" is an implementation deta
 | Logto Admin Console | http://localhost:3002 | Manage users, orgs, roles |
 | RavenDB Studio | http://localhost:3333 | Database explorer |
 | Mailpit (dev email) | http://localhost:8025 | Catches all outbound email |
+| IDS Doctor sidecar | http://localhost:3999 | Dev only — enable with `VITE_ENABLE_IDS_DOCTOR=true` |
 
 ## Local Infrastructure (Docker)
 
@@ -95,6 +96,12 @@ The UI term is always "Location". "Logto Organization" is an implementation deta
 | RavenDB | 3333 | 3333 | Application database (`ids_db`) |
 | Logto | 3001, 3002 | 3001, 3002 | Auth server + admin console |
 | Mailpit | 8025 (web), 1025 (SMTP) | 8025, 1025 | Dev email catch-all |
+
+---
+
+## IDS Doctor (Dev Only)
+
+`apps/astra-dev-doctor` is a local-only NestJS sidecar that captures browser telemetry from `client-web`, runs diagnostic rules, and writes `.doctor/` output files for AI and developer inspection. Never deployed to production. Controlled by `VITE_ENABLE_IDS_DOCTOR=true` in `.env`. See `docs/ARCHITECTURE.md` for full details.
 
 ---
 
