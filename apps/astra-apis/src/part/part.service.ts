@@ -14,7 +14,7 @@ import {
   NotFoundException,
   OnModuleInit,
 } from '@nestjs/common';
-import type {IDocumentQuery, QueryStatistics} from 'ravendb';
+import type {IDocumentQuery} from 'ravendb';
 import {createIdsBaseEntity, touchIdsBaseEntity} from '../common/entities/ids-base.entity';
 import {RavenDocumentStoreProvider} from '../infrastructure/ravendb/document-store.provider';
 import {RavenSessionFactory} from '../infrastructure/ravendb/session-factory';
@@ -526,7 +526,7 @@ export class PartService implements OnModuleInit {
 
     q = q.orderBy('partNumber');
 
-    let stats!: QueryStatistics;
+    let stats!: {totalResults: number};
     const parts = await q
       .statistics((s) => {
         stats = s;

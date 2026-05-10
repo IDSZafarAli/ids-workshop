@@ -12,7 +12,11 @@
     "target": "es2021",
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*.ts", "../../database/seeds/data/**/*.ts"],
+  "include": [
+    "src/**/*.ts",
+    "../../database/seeds/data/**/*.ts",
+    "../../database/seeds/dto/**/*.ts"
+  ],
   "exclude": [
     "out-tsc",
     "dist",

@@ -93,7 +93,7 @@ Derive a concrete step-by-step implementation plan. Write it to `.ai-plan/runs/a
 Present the derived plan to the user. Stop. Wait for explicit approval before writing any code.
 
 **State mutations on user response:**
-- **Approval** ("yes", "looks good", "proceed"): set `plan_approved: true`, update `updated_at`, re-Read to confirm. Then continue to Phase 2.
+- **Approval** ("yes", "looks good", "proceed"): set `plan_approved: true`, update `updated_at`, re-Read to confirm. Write a checkpoint handoff to `.ai-plan/handoffs/handoff-<timestamp>.md` (Purpose: "plan approved — beginning implementation for `<plan basename>`"; reference plan path, derived-plan path, and key clarifications from the state file — do not copy their content). Then continue to Phase 2.
 - **Edit request** (user wants changes): append the revision text to `plan_edits`, update `updated_at`, re-Read. Update the derived plan markdown and re-present.
 - **Decline** / start over: leave `plan_approved: false`. Address concerns and re-derive (back to Step 1.4).
 
@@ -229,11 +229,17 @@ If Critical or High findings are reported, address them and re-run the fast gate
 ### Step 6 — Done
 Only report the work as complete after every mandatory gate above has passed in the same iteration.
 
+Write a completion handoff to `.ai-plan/handoffs/handoff-<timestamp>.md` (Purpose: "RALPH complete — all gates passed for `<plan basename>`"; reference plan path, run-state path, list files changed on this branch via `git diff origin/main --name-only`).
+
 ---
 
 ## Escalation rules
 
+**Before escalating on a 3rd consecutive identical gate failure:** read `.ai-memory/case-studies/index.md` and search for entries with matching tags (gate name, error type, affected module). If a match exists, read that case study and try its Fix before escalating.
+
+**After a novel non-obvious repair succeeds:** if no existing case study covers the failure, use `.claude/skills/case-study-memory/SKILL.md` to capture the failure, cause, fix, and lesson.
+
 Stop and ask the user if:
 - A failure points to something outside the approved derived plan's scope
-- The same gate fails identically across 3 consecutive repair attempts
+- The same gate fails identically across 3 consecutive repair attempts **and no matching case study fix resolves it**
 - A new ambiguity surfaces that the plan never addressed

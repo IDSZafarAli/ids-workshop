@@ -26,6 +26,8 @@
     "lint": "biome check --write .",
     "lint:check": "biome check .",
     "lint:ci": "biome ci .",
+    "check:standards": "tsx scripts/check-standards.ts",
+    "check:standards:changed": "tsx scripts/check-standards.ts --changed-only",
     "prepare": "husky",
     "playwright:install": "npx playwright install",
     "logto": "tsx scripts/logto.ts",

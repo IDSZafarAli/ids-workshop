@@ -38,6 +38,7 @@ When working in these areas, read the linked skill file before writing code:
 | Money type & locale-aware formatting — cents storage, MoneyField, useFormat* | `.claude/skills/money-and-formatting/SKILL.md` |
 | Playwright E2E tests — Logto auth, location selection, stable selectors, timing | `.claude/skills/playwright-e2e/SKILL.md` |
 | GitHub PR interactions — posting a review, resolving open comment threads and replying | `.claude/skills/pr-review-github/SKILL.md` |
+| Gate failures, tool quirks, non-obvious repairs, or repeated mistakes | `.claude/skills/case-study-memory/SKILL.md` |
 
 ---
 
@@ -113,6 +114,16 @@ The Stop hook (`post-task-check.ts`) runs these in parallel after every task. Ru
 | `npm run dev:web` | Start React frontend dev server |
 
 E2E tests live in `apps/astra-apis-e2e/` and `apps/client-web-e2e/` — invoke via Nx (`nx e2e <project>`), not the npm scripts above.
+
+### Workflow Commands
+
+| Command | What it does |
+|---|---|
+| `/handoff` | Create a concise session handoff for the next agent or session |
+| `/resume-handoff` | Load the latest (or a specified) handoff and propose next steps |
+| `/curate-case-studies` | Review case-study memory for stale, duplicate, or promotable lessons |
+
+See `docs/commands-guide.md` for full usage, arguments, and when to use each command.
 
 ---
 

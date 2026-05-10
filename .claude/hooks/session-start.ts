@@ -2,6 +2,9 @@
 // so Claude has the highest-risk rules in mind before the first edit.
 // Output to stdout is injected as additional context. Exit 0.
 
+import {existsSync, readFileSync} from 'node:fs';
+import {join} from 'node:path';
+
 const SUMMARY = `[IDS Cloud DMS — Non-Negotiable rules summary]
 
 Backend (apps/astra-apis):
@@ -37,5 +40,16 @@ Full rules: docs/standards/coding-standards-{core,backend,frontend}.md
 RavenDB: docs/standards/ravendb-document-design.md
 `;
 
-process.stdout.write(SUMMARY);
+let caseStudyLine = '';
+const csIndexPath = join(process.cwd(), '.ai-memory/case-studies/index.md');
+if (existsSync(csIndexPath)) {
+  const activeCount = readFileSync(csIndexPath, 'utf-8')
+    .split('\n')
+    .filter((l) => /^\| active /.test(l)).length;
+  if (activeCount > 0) {
+    caseStudyLine = `\nCase Studies: ${activeCount} active — check .ai-memory/case-studies/index.md before diagnosing repeated failures or tool quirks.`;
+  }
+}
+
+process.stdout.write(SUMMARY + caseStudyLine);
 process.exit(0);
