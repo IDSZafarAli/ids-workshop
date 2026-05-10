@@ -20,6 +20,9 @@
     },
     {
       "path": "./libs/shared/testing-helpers"
+    },
+    {
+      "path": "./apps/astra-dev-doctor"
     }
   ]
 }

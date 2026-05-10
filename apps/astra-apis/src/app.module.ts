@@ -5,7 +5,6 @@ import {AccessTokenGuard} from './auth/access-token.guard';
 import {AuthModule} from './auth/auth.module';
 import {ProblemDetailsFilter} from './common/filters/problem-details.filter';
 import {RequestContextMiddleware} from './common/middleware/request-context.middleware';
-import {DoctorModule} from './doctor/doctor.module';
 import {GlobalModule} from './global/global.module';
 import {RavenDbModule} from './infrastructure/ravendb/ravendb.module';
 import {LocationModule} from './location/location.module';
@@ -13,33 +12,23 @@ import {PartModule} from './part/part.module';
 import {SystemHealthModule} from './ping/systemhealth.module';
 import {UserModule} from './user/user.module';
 
-const devOnlyModules = process.env.NODE_ENV === 'development' ? [DoctorModule] : [];
-
 @Module({
   imports: [
-    // Configuration
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env.local', '.env'],
     }),
-
     RavenDbModule,
-
-    // Feature Modules
     AuthModule,
     GlobalModule,
     SystemHealthModule,
     UserModule,
     LocationModule,
     PartModule,
-
-    // Dev-only modules — never loaded in production
-    ...devOnlyModules,
   ],
   controllers: [],
   providers: [
     ProblemDetailsFilter,
-    // Apply AccessTokenGuard globally to all routes
     {
       provide: APP_GUARD,
       useClass: AccessTokenGuard,

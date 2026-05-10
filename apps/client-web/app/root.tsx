@@ -36,13 +36,18 @@ const logtoConfig: LogtoConfig = {
   scopes: [UserScope.Organizations, UserScope.OrganizationRoles],
 };
 
+const doctorOrigin =
+  import.meta.env.VITE_ENABLE_IDS_DOCTOR === 'true' && import.meta.env.VITE_DOCTOR_URL
+    ? new URL(import.meta.env.VITE_DOCTOR_URL).origin
+    : '';
+
 export const meta: MetaFunction = () => [
   {
     title: 'IDS AI Skeleton',
   },
   {
     httpEquiv: 'Content-Security-Policy',
-    content: `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https: http://localhost:*; connect-src 'self' ${AUTH_CONFIG.endpoint} ${new URL(API_CONFIG.baseUrl).origin}`,
+    content: `default-src 'self'; script-src 'self' 'unsafe-inline' ${doctorOrigin}; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https: http://localhost:*; connect-src 'self' ${AUTH_CONFIG.endpoint} ${new URL(API_CONFIG.baseUrl).origin} ${doctorOrigin}`,
   },
 ];
 

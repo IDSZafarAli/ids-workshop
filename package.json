@@ -8,6 +8,8 @@
     "dev:start": "tsx scripts/dev.ts start",
     "dev:apis": "tsx scripts/dev.ts apis",
     "dev:web": "tsx scripts/dev.ts web",
+    "dev:doctor": "tsx scripts/dev.ts doctor",
+    "build:doctor-widget": "nx run @ids-ai-skeleton/astra-dev-doctor:build-widget",
     "dev": "tsx scripts/dev.ts",
     "dev:full-reset": "tsx scripts/reset-from-scratch.ts",
     "docker": "tsx scripts/docker.ts",

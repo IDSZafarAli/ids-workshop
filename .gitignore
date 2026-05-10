@@ -78,10 +78,6 @@ tsconfig.tsbuildinfo
 *.lock
 .claude/scheduled_tasks.lock
 
-# IDS Doctor runtime files — contain JWT tokens, never commit
-.doctor/sessions/
-.doctor/alerts.jsonl
-.doctor/diagnoses/
-.doctor/snapshot.json
-.doctor/requests/
-.doctor/responses/
+# IDS Doctor runtime files — contain JWT tokens and sensitive replay data, never commit
+.doctor/**
+!.doctor/.gitkeep
