@@ -34,6 +34,7 @@ yarn-error.log
 testem.log
 /typings
 .ai-plan/**
+.ai-eval/**
 .doctor/**
 
 # System Files
@@ -76,3 +77,9 @@ api-test.http
 .claude/settings.local.json
 azure/update-my-ip.sh
 tsconfig.tsbuildinfo
+*.lock
+.claude/scheduled_tasks.lock
+
+# IDS Doctor runtime files — contain JWT tokens and sensitive replay data, never commit
+.doctor/**
+!.doctor/.gitkeep

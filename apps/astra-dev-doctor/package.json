@@ -1,0 +1,75 @@
+{
+  "name": "@ids-ai-skeleton/astra-dev-doctor",
+  "version": "0.0.1",
+  "private": true,
+  "nx": {
+    "targets": {
+      "build": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "webpack-cli build",
+          "args": [
+            "--config-node-env=production"
+          ],
+          "cwd": "apps/astra-dev-doctor"
+        },
+        "configurations": {
+          "development": {
+            "args": [
+              "--config-node-env=development"
+            ]
+          }
+        }
+      },
+      "serve": {
+        "continuous": true,
+        "executor": "@nx/js:node",
+        "defaultConfiguration": "development",
+        "dependsOn": [
+          "build"
+        ],
+        "options": {
+          "buildTarget": "@ids-ai-skeleton/astra-dev-doctor:build",
+          "inspect": false,
+          "runBuildTargetDependencies": false
+        },
+        "configurations": {
+          "development": {
+            "buildTarget": "@ids-ai-skeleton/astra-dev-doctor:build:development"
+          }
+        }
+      },
+      "build-widget": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "vite build --config apps/astra-dev-doctor/widget/vite.config.ts",
+          "cwd": "{workspaceRoot}"
+        }
+      },
+      "watch-widget": {
+        "continuous": true,
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "vite build --watch --config apps/astra-dev-doctor/widget/vite.config.ts",
+          "cwd": "{workspaceRoot}"
+        }
+      },
+      "test": {
+        "options": {
+          "passWithNoTests": true
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/platform-express": "^11.0.0",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@nestjs/testing": "^11.0.0"
+  }
+}

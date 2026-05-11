@@ -1,0 +1,17 @@
+{
+  "name": "@ids-ai-skeleton/ai-eval",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "nx": {
+    "targets": {
+      "run": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "tsx apps/ai-eval/runner/src/index.ts",
+          "cwd": "{workspaceRoot}"
+        }
+      }
+    }
+  }
+}

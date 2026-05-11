@@ -14,15 +14,11 @@ import {UserModule} from './user/user.module';
 
 @Module({
   imports: [
-    // Configuration
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env.local', '.env'],
     }),
-
     RavenDbModule,
-
-    // Feature Modules
     AuthModule,
     GlobalModule,
     SystemHealthModule,
@@ -33,7 +29,6 @@ import {UserModule} from './user/user.module';
   controllers: [],
   providers: [
     ProblemDetailsFilter,
-    // Apply AccessTokenGuard globally to all routes
     {
       provide: APP_GUARD,
       useClass: AccessTokenGuard,

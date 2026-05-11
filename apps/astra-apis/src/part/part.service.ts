@@ -15,6 +15,10 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import type {IDocumentQuery} from 'ravendb';
+
+// ravendb ships QueryStatistics.d.ts.map but not the .d.ts itself — declare locally
+type QueryStatistics = {totalResults: number};
+
 import {createIdsBaseEntity, touchIdsBaseEntity} from '../common/entities/ids-base.entity';
 import {RavenDocumentStoreProvider} from '../infrastructure/ravendb/document-store.provider';
 import {RavenSessionFactory} from '../infrastructure/ravendb/session-factory';
@@ -526,7 +530,7 @@ export class PartService implements OnModuleInit {
 
     q = q.orderBy('partNumber');
 
-    let stats!: {totalResults: number};
+    let stats!: QueryStatistics;
     const parts = await q
       .statistics((s) => {
         stats = s;
