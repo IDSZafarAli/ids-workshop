@@ -68,8 +68,10 @@ docker exec ${PG_CONTAINER} psql -U "${LOGTO_DB_USER}" -c "DROP DATABASE IF EXIS
 docker exec ${PG_CONTAINER} psql -U "${LOGTO_DB_USER}" -c "CREATE DATABASE ${LOGTO_DB_NAME};"
 
 # Restore from backup
+# FK triggers are disabled for the session so COPY order in the SQL file doesn't matter.
 echo "📥 Restoring data..."
-cat "${BACKUP_FILE}" | docker exec -i ${PG_CONTAINER} psql -U "${LOGTO_DB_USER}" "${LOGTO_DB_NAME}"
+(echo "SET session_replication_role = replica;"; cat "${BACKUP_FILE}"; echo "SET session_replication_role = DEFAULT;") \
+  | docker exec -i ${PG_CONTAINER} psql -U "${LOGTO_DB_USER}" "${LOGTO_DB_NAME}"
 
 echo "🔐 Fixing database user authentication..."
 
@@ -187,22 +189,27 @@ fi
 
 echo "🔑 Ensuring Logto admin console access for ids_logto_admin..."
 
-# Ensure ids_logto_admin is a member of t-default org with admin role.
-# This is required for the admin console login to work (Logto uses org-scoped tokens).
-# These inserts are idempotent — safe to run even if the rows already exist from the init config.
-docker exec ${PG_CONTAINER} psql -U "${LOGTO_DB_USER}" "${LOGTO_DB_NAME}" -c "
-INSERT INTO organization_user_relations (tenant_id, organization_id, user_id)
-VALUES ('admin', 't-default', 'idslogtoadmi')
-ON CONFLICT DO NOTHING;
+IDS_LOGTO_ADMIN_ID=$(docker exec ${PG_CONTAINER} psql -U "${LOGTO_DB_USER}" "${LOGTO_DB_NAME}" -t -c "
+SELECT id FROM users WHERE tenant_id = 'admin' AND username = 'ids_logto_admin' LIMIT 1;
+" | tr -d '[:space:]')
 
-INSERT INTO organization_role_user_relations (tenant_id, organization_id, organization_role_id, user_id)
-VALUES ('admin', 't-default', 'admin', 'idslogtoadmi')
-ON CONFLICT DO NOTHING;
+if [ -z "${IDS_LOGTO_ADMIN_ID}" ]; then
+  echo "⚠️  User ids_logto_admin not found in backup — skipping org membership setup."
+else
+  docker exec ${PG_CONTAINER} psql -U "${LOGTO_DB_USER}" "${LOGTO_DB_NAME}" -c "
+  INSERT INTO organization_user_relations (tenant_id, organization_id, user_id)
+  VALUES ('admin', 't-default', '${IDS_LOGTO_ADMIN_ID}')
+  ON CONFLICT DO NOTHING;
 
-UPDATE users
-SET logto_config = jsonb_set(logto_config, '{adminConsole,organizationCreated}', 'true')
-WHERE tenant_id = 'admin' AND id = 'idslogtoadmi';
-" > /dev/null
+  INSERT INTO organization_role_user_relations (tenant_id, organization_id, organization_role_id, user_id)
+  VALUES ('admin', 't-default', 'admin', '${IDS_LOGTO_ADMIN_ID}')
+  ON CONFLICT DO NOTHING;
+
+  UPDATE users
+  SET logto_config = jsonb_set(logto_config, '{adminConsole,organizationCreated}', 'true')
+  WHERE tenant_id = 'admin' AND id = '${IDS_LOGTO_ADMIN_ID}';
+  " > /dev/null
+fi
 
 echo "🚀 Starting Logto service..."
 docker compose start logto_svc
