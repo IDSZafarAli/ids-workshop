@@ -144,7 +144,7 @@ export function createPanel(shadow: ShadowRoot): void {
         </header>
         ${statusText ? `<div class="status ${statusKind}">${esc(statusText)}</div>` : ''}
         <nav class="tabs">
-          <button class="tab${tab === 'network' ? ' active' : ''}" data-action="tab-network">Network (${network.length})</button>
+          <button class="tab${tab === 'network' ? ' active' : ''}" data-action="tab-network">Network (${network.length}${networkFilter === 'fails' ? ' · fails only' : ''})</button>
           <button class="tab${tab === 'console' ? ' active' : ''}" data-action="tab-console">Console (${cons.length})</button>
           <button class="tab${tab === 'settings' ? ' active' : ''}" data-action="tab-settings">⚙ Settings</button>
         </nav>
@@ -161,7 +161,7 @@ export function createPanel(shadow: ShadowRoot): void {
         ? network.filter((e) => (e.status === 0 && !e.aborted) || e.status >= 400)
         : network;
     if (evs.length === 0) {
-      return '<div class="empty">No API calls captured yet.</div>';
+      return `<div class="empty">${networkFilter === 'fails' ? 'No failed API calls captured yet.' : 'No API calls captured yet.'}</div>`;
     }
     return evs
       .slice()
@@ -319,9 +319,13 @@ export function createPanel(shadow: ShadowRoot): void {
     render();
     try {
       await syncToSidecar(true, {includeDomSnapshot: includeDom, networkFilter});
-      statusText = includeDom
-        ? 'Synced. DOM snapshot and report written.'
-        : 'Synced. Report written.';
+      const extras = [
+        networkFilter === 'fails' && 'fails-only filter',
+        includeDom && 'DOM snapshot',
+      ]
+        .filter(Boolean)
+        .join(' + ');
+      statusText = extras ? `Synced (${extras}). Report written.` : 'Synced. Report written.';
       statusKind = 'ok';
     } catch (err) {
       statusText = err instanceof Error ? err.message : 'Sync failed';

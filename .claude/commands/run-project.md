@@ -43,6 +43,7 @@ Run these checks together via a single Bash tool call where possible. Capture ea
 | 10 | `node_modules` | `[ -d node_modules ] && [ "$(ls node_modules \| wc -l)" -gt 100 ] && echo ok \|\| echo missing` | `ok` |
 | 12 | Doctor sidecar | `curl -sf -o /dev/null -w '%{http_code}' http://localhost:3999/health 2>/dev/null \|\| echo down` | `200` |
 | 13 | Doctor flag | `grep -E '^VITE_ENABLE_IDS_DOCTOR=true' .env && grep -E '^VITE_DOCTOR_URL=' .env` | both lines present |
+| 14 | Doctor widget built | `[ -f apps/astra-dev-doctor/widget/dist/doctor.js ] && echo ok \|\| echo missing` | `ok` |
 
 **Port owners (Windows — use PowerShell tool):**
 ```powershell
